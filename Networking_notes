@@ -1,0 +1,24 @@
+Networking commands
+
+tcpdump  : to capture packets 
+eg:
+  interface :
+  
+  sudo tcpdump -c 10 -i en0  (interface en0 - captured)
+  
+  for ports:
+  
+  sudo tcpdump -c 10 -etho port 22 (ssh connections to the ethernet  port 0)
+    
+  netstat
+  
+  network connections listing 
+  
+  netstat -nr 
+  netstat -ta
+  
+  host file 
+  
+  /etc/hosts  : where the host look up for the address / you can provide addressess there to route
+  
+  traceroute
