@@ -1,0 +1,46 @@
+to find info regarding password information
+
+chage -l amal   (amal - username here)
+
+result
+
+Last password change                                    : password must be changed
+Password expires                                        : password must be changed
+Password inactive                                       : password must be changed
+Account expires                                         : Dec 13, 2022
+Minimum number of days between password change          : 0
+Maximum number of days between password change          : 90
+Number of days of warning before password expires       : 7
+[abhi@Centos1 ~]$
+
+
+chage -l  : can be used to find what attribute you want to change 
+
+ -d, --lastday LAST_DAY        set date of last password change to LAST_DAY
+  -E, --expiredate EXPIRE_DATE  set account expiration date to EXPIRE_DATE
+  -h, --help                    display this help message and exit
+  -I, --inactive INACTIVE       set password inactive after expiration
+                                to INACTIVE
+  -l, --list                    show account aging information
+  -m, --mindays MIN_DAYS        set minimum number of days before password
+                                change to MIN_DAYS
+  -M, --maxdays MAX_DAYS        set maximum number of days before password
+                                change to MAX_DAYS
+  -R, --root CHROOT_DIR         directory to chroot into
+  -W, --warndays WARN_DAYS      set expiration warning days to WARN_DAYS
+  
+  
+  If you want to setup default max days of expiration to 90 days , yopu have to change the " PASS_MAX_DAYS   90" ---- /etc/login.defs  file
+  
+  -M : max number of days
+  
+  -d : Force the user to change the pw on next login , set the value to 0 
+  
+  sometime you get a question like, set the expiry date to 120 days from now
+  
+  to find that date, use the date commands
+  
+  date -d "+120 days" +%F
+  
+  Use this date to set the sudo chage -E  " the date "value 
+
