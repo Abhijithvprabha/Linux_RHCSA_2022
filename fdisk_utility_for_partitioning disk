@@ -1,0 +1,123 @@
+How to partiton disk - RHEL 9 with fdisk utility 
+
+[root@RedHat2 ~]# fdisk /dev/nvme0n3
+
+Welcome to fdisk (util-linux 2.37.4).
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+
+Command (m for help): d
+Partition number (1,2, default 2): 2
+
+Partition 2 has been deleted.
+
+Command (m for help): w
+The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.
+
+[root@RedHat2 ~]# partprobe
+[root@RedHat2 ~]# fdisk /dev/nvme0n3
+
+Welcome to fdisk (util-linux 2.37.4).
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+
+Command (m for help): n
+Partition type
+   p   primary (1 primary, 0 extended, 3 free)
+   e   extended (container for logical partitions)
+Select (default p): e
+Partition number (2-4, default 2): 2
+First sector (3147776-8388607, default 3147776):
+Last sector, +/-sectors or +/-size{K,M,G,T,P} (3147776-8388607, default 8388607):
+
+Created a new partition 2 of type 'Extended' and of size 2.5 GiB.
+
+Command (m for help): w
+The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.
+
+[root@RedHat2 ~]# partprobe
+[root@RedHat2 ~]# fdisk -l /dev/nvme0n3
+Disk /dev/nvme0n3: 4 GiB, 4294967296 bytes, 8388608 sectors
+Disk model: VMware Virtual NVMe Disk
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: dos
+Disk identifier: 0x63e0e2d3
+
+Device         Boot   Start     End Sectors  Size Id Type
+/dev/nvme0n3p1         2048 3147775 3145728  1.5G 8e Linux LVM
+/dev/nvme0n3p2      3147776 8388607 5240832  2.5G  5 Extended
+[root@RedHat2 ~]#
+
+
+
+
+
+
+Notes/// https://tldp.org/HOWTO/Partition/fdisk_partitioning.html 
+
+I start fdisk from the shell prompt:
+
+# fdisk /dev/hdb 
+which indicates that I am using the second drive on my IDE controller. (See Section 2.1.) When I print the (empty) partition table, I just get configuration information.
+
+Command (m for help): p
+
+Disk /dev/hdb: 64 heads, 63 sectors, 621 cylinders
+Units = cylinders of 4032 * 512 bytes
+I knew that I had a 1.2Gb drive, but now I really know: 64 * 63 * 512 * 621 = 1281982464 bytes. I decide to reserve 128Mb of that space for swap, leaving 1153982464. If I use one of my primary partitions for swap, that means I have three left for ext2 partitions. Divided equally, that makes for 384Mb per partition. Now I get to work.
+
+Command (m for help): n
+Command action
+   e   extended
+   p   primary partition (1-4)
+p
+Partition number (1-4): 1
+First cylinder (1-621, default 1):<RETURN>
+Using default value 1
+Last cylinder or +size or +sizeM or +sizeK (1-621, default 621): +384M
+Next, I set up the partition I want to use for swap:
+
+Command (m for help): n
+Command action
+   e   extended
+   p   primary partition (1-4)
+p
+Partition number (1-4): 2
+First cylinder (197-621, default 197):<RETURN>
+Using default value 197
+Last cylinder or +size or +sizeM or +sizeK (197-621, default 621): +128M
+Now the partition table looks like this:
+
+   Device Boot    Start       End    Blocks   Id  System
+/dev/hdb1             1       196    395104   83  Linux
+/dev/hdb2           197       262    133056   83  Linux
+I set up the remaining two partitions the same way I did the first. Finally, I make the first partition bootable:
+
+Command (m for help): a
+Partition number (1-4): 1
+And I make the second partition of type swap:
+
+Command (m for help): t
+Partition number (1-4): 2
+Hex code (type L to list codes): 82
+Changed system type of partition 2 to 82 (Linux swap)      
+Command (m for help): p
+The end result:
+
+Disk /dev/hdb: 64 heads, 63 sectors, 621 cylinders
+Units = cylinders of 4032 * 512 bytes
+ 
+   Device Boot    Start       End    Blocks   Id  System
+/dev/hdb1   *         1       196    395104+  83  Linux
+/dev/hdb2           197       262    133056   82  Linux swap
+/dev/hdb3           263       458    395136   83  Linux
+/dev/hdb4           459       621    328608   83  Linux          
+Finally, I issue the write command (w) to write the table on the disk.
